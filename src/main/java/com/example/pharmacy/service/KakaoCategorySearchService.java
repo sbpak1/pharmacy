@@ -1,6 +1,8 @@
 package com.example.pharmacy.service;
 
+import com.example.pharmacy.dto.DocumentDto;
 import com.example.pharmacy.dto.KakaoApiResponseDto;
+import com.example.pharmacy.dto.OutputDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +14,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -22,6 +25,8 @@ public class KakaoCategorySearchService {
     // 환경 변수에서 ${KAKAO_REST_API_KEY} 값을 가져와서 사용
     @Value("${KAKAO_REST_API_KEY}")
     private String kakaoRestApiKey;
+
+
 
     public void apikeyTest() {
         log.info("====== Kakao APi Key : {}", kakaoRestApiKey);
@@ -59,4 +64,40 @@ public class KakaoCategorySearchService {
 
     }
 
+    public List<OutputDto> makeOutputDto(List<DocumentDto> documentList) {
+        // 리스트에 3개만 담기
+        return documentList.stream()
+                .map(x -> convertDto(x))
+                .limit(3)
+                .toList();
+    }
+
+    // DocumentDto에서 자료를 뽑아서 길찾기, 로드맵을 추가
+    private OutputDto convertDto(DocumentDto documentDto) {
+        // 로드뷰 URL 만들기
+        String ROAD_VIEW_URL = "https://map.kakao.com/link/roadview/";
+        // 길찾기 URL 만들기
+        String DIRECTION_URL = "https://map.kakao.com/link/to/";
+
+        String params = String.join(",",documentDto.getPlaceName(),
+                String.valueOf(documentDto.getLatitude()),
+                String.valueOf(documentDto.getLongitude()));
+        System.out.println("documentDto.getLatitude() : "+ documentDto.getLatitude() + "\n documentDto.getLongitude() :"+ documentDto.getLongitude());
+        String mapUrl = UriComponentsBuilder
+                .fromUriString(DIRECTION_URL + params)
+                .toUriString();
+
+        // 로드뷰 URL 생성
+        String roadUrl = UriComponentsBuilder
+                .fromUriString(ROAD_VIEW_URL + documentDto.getLatitude() + "," +
+                documentDto.getLongitude()).toUriString();
+
+        return OutputDto.builder()
+                .pharmacyName(documentDto.getPlaceName())
+                .pharmacyAddress(documentDto.getAddressName())
+                .directionURL(mapUrl)
+                .roadViewURL(roadUrl)
+                .distance(String.format("%.0f m", documentDto.getDistance()))
+                .build();
+    }
 }

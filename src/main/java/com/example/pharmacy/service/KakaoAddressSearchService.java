@@ -31,7 +31,7 @@ public class KakaoAddressSearchService {
     // 우리가 만들 주소(url)
     // https://dapi.kakao.com/v2/local/search/address.json?query=강남대로 405
     private static final String KAKAO_LOCAL_URL =
-            "https://dapi.kakao.com/v2/local/search/address.json?query=강남대로 405";
+            "https://dapi.kakao.com/v2/local/search/address.json";
 
     public KakaoApiResponseDto requestAddressSearch(String address) {
         // 건네받은 주소가 비어있는 경우
